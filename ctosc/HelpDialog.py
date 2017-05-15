@@ -5,10 +5,10 @@ help_text = """
 <html>
 <head><head/>
 <body>
-<h1>Image blend</h1>
+<h1>CTOSC</h1>
 
 <p>
-The image blend program is a simple tool for make an average image out of a series of images. 
+The image blend functionality is a simple tool for make an average image out of a series of images. 
 Such blending is useful for example when comparing large series of photolumiscence measurements on silicon solar cells.
 </p>
 <p>

@@ -1,4 +1,4 @@
-cd image-blend
+cd ctosc
 del *.c
 del *.pyc
 del *.pyd
