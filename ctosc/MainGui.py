@@ -56,7 +56,6 @@ class MainGui(QtWidgets.QMainWindow):
         self.rsheet_model.setHorizontalHeaderLabels([self.tr('Files')])
         self.rsheet_view.setRootIsDecorated(False)
         self.rsheet_view.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)
-        self.rsheet_view.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
         self.rsheet_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)        
 
         rsh_open_files_button = QtWidgets.QPushButton()

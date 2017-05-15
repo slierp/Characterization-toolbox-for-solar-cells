@@ -16,10 +16,10 @@ axis_label = r'$\mathrm{\mathsf{I_{REV}\ [A]}}$'
 
 ########## Main class - only for inheriting ##########
 
-class RSheetPlot(QtWidgets.QMainWindow):  
+class RsheetPlot(QtWidgets.QMainWindow):  
     
-    def __init__(self, parent=None):
-        QtWidgets.QMainWindow.__init__(self, parent)
+    def __init__(self, parent):
+        QtWidgets.QMainWindow.__init__(self)
         self.setWindowTitle(self.tr("Contour plot"))
 
         self.resize(1020, 752)
@@ -28,26 +28,25 @@ class RSheetPlot(QtWidgets.QMainWindow):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
         
-        self.data = parent.data
+        data = parent.data
+        row = parent.view.selectedIndexes()[0].row()
+        self.data_array = data[row].ix[:,2]
+        array_width = int(len(self.data_array)**0.5)
+        self.data_array = self.data_array.values.reshape(array_width,array_width)
         
-        self.create_menu(self)
-        self.create_main_frame(self)          
+        self.create_menu()
+        self.create_main_frame()          
         self.on_draw()         
         
     def on_draw(self):
         # Clear previous and re-draw everything
-        self.axes.clear()   
-        self.axes.grid(self.grid_selection)
+        self.axes.clear()
 
-        self.axes.set_xlabel(r'$\mathrm{\mathsf{V_{OC}\ [V]}}$', fontsize=24, weight='black')
-        self.axes.set_ylabel(r'$\mathrm{\mathsf{I_{SC}\ [A]}}$', fontsize=24, weight='black')
-        self.axes.tick_params(pad=8)
+        self.axes.set_xlabel(r'$\mathrm{\mathsf{x}}$', fontsize=24, weight='black')
+        self.axes.set_ylabel(r'$\mathrm{\mathsf{y}}$', fontsize=24, weight='black')
         
-        for i in self.plot_selection:
-            self.axes.scatter(self.ad[i]['Uoc'],self.ad[i]['Isc'],c=cl[i % len(cl)],edgecolors='white',linewidths=0.3,s=self.dotsize_selection,label=self.ad[i].index.name)
-
-        if self.legend_selection:
-            self.axes.legend(loc='lower left',scatterpoints=1,markerscale=3,frameon=False)
+        self.axes.imshow(self.data_array, cmap='Wistia')
+        #self.axes.imshow(self.data_array, interpolation='gaussian', cmap='Wistia')
 
         self.canvas.draw()
     

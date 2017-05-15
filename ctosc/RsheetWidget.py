@@ -2,6 +2,7 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
 import os, ntpath
 import pandas as pd
+from RsheetPlot import RsheetPlot
 
 class RsheetWidget(QtCore.QObject):
     def __init__(self, parent=None):
@@ -12,7 +13,7 @@ class RsheetWidget(QtCore.QObject):
         self.model = self.parent.rsheet_model
         self.statusbar = self.parent.statusBar()
         self.data = []
-
+        self.wid = None
         self.prev_dir_path = ""
         
     def open_files(self):
@@ -104,13 +105,25 @@ class RsheetWidget(QtCore.QObject):
                                     
     def show(self):
         
-        return
-        
-        if not self.blend_image:
-            self.statusbar.showMessage(self.tr("Please blend image files"),3000)
+        if (not len(self.view.selectedIndexes())):
+            # if nothing selected
+            self.statusbar.showMessage(self.tr("Please select position"),3000)
             return
+        
+        if (not len(self.data)):
+            self.statusbar.showMessage(self.tr("Please load data files"),3000)
+            return      
 
-        self.blend_image.show()
+        self.statusbar.showMessage(self.tr("Creating plot window..."),3000)
+
+        if (self.wid):
+            if (self.wid.isWindow()):
+                # close previous instances of child windows to save system memory                
+                self.wid.close()                
+
+        self.wid = RsheetPlot(self)
+
+        self.wid.show()
 
         self.statusbar.showMessage(self.tr("Ready"),3000)            
         
