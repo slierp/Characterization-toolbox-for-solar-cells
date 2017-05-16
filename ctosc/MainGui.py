@@ -24,6 +24,7 @@ class MainGui(QtWidgets.QMainWindow):
         self.rsheet_view = QtWidgets.QTreeView()
         self.rsheet_model = QtGui.QStandardItemModel()
         self.rsheet_widget = RsheetWidget(self)
+        self.rsheet_view.doubleClicked.connect(self.rsheet_widget.show)
         
         self.ecv_view = QtWidgets.QTreeView()
         self.ecv_model = QtGui.QStandardItemModel()

@@ -4,6 +4,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from matplotlib import rcParams
+from PlotSettingsDialog import PlotSettingsDialog
 rcParams.update({'figure.autolayout': True})
 
 font = {'family' : 'sans-serif',
@@ -11,16 +12,11 @@ font = {'family' : 'sans-serif',
 
 matplotlib.rc('font', **font)
 
-cl = ['#4F81BD', '#C0504D', '#9BBB59','#F79646','#8064A2','#4BACC6','0','0.5'] # colour
-axis_label = r'$\mathrm{\mathsf{I_{REV}\ [A]}}$'
-
-########## Main class - only for inheriting ##########
-
 class RsheetPlot(QtWidgets.QMainWindow):  
     
     def __init__(self, parent):
         QtWidgets.QMainWindow.__init__(self)
-        self.setWindowTitle(self.tr("Contour plot"))
+        self.setWindowTitle(self.tr("Color map"))
 
         self.resize(1020, 752)
         frameGm = self.frameGeometry()
@@ -30,9 +26,18 @@ class RsheetPlot(QtWidgets.QMainWindow):
         
         data = parent.data
         row = parent.view.selectedIndexes()[0].row()
-        self.data_array = data[row].ix[:,2]
+        self.data_array = data[row] #.ix[:,2]
         array_width = int(len(self.data_array)**0.5)
-        self.data_array = self.data_array.values.reshape(array_width,array_width)
+        self.x = self.data_array.ix[:,0].values.reshape(array_width,array_width)
+        self.y = self.data_array.ix[:,1].values.reshape(array_width,array_width)
+        self.z = self.data_array.ix[:,2].values.reshape(array_width,array_width)
+        self.name = self.data_array.index.name
+
+        self.interpolation_enabled = False
+        self.colorbar_enabled = True
+        self.title_enabled = True
+        self.scale_min = None
+        self.scale_max = None
         
         self.create_menu()
         self.create_main_frame()          
@@ -41,12 +46,22 @@ class RsheetPlot(QtWidgets.QMainWindow):
     def on_draw(self):
         # Clear previous and re-draw everything
         self.axes.clear()
+        self.fig.clear()
+        self.axes = self.fig.add_subplot(111, facecolor='White')
 
         self.axes.set_xlabel(r'$\mathrm{\mathsf{x}}$', fontsize=24, weight='black')
         self.axes.set_ylabel(r'$\mathrm{\mathsf{y}}$', fontsize=24, weight='black')
         
-        self.axes.imshow(self.data_array, cmap='Wistia')
-        #self.axes.imshow(self.data_array, interpolation='gaussian', cmap='Wistia')
+        if not self.interpolation_enabled:
+            plot = self.axes.pcolormesh(self.x, self.y, self.z, cmap='Wistia')
+        else:
+            plot = self.axes.imshow(self.z, interpolation='gaussian', cmap='Wistia')
+        
+        if self.colorbar_enabled:
+            self.fig.colorbar(plot,ax=self.axes)
+
+        if self.title_enabled:
+            self.axes.set_title(self.name)
 
         self.canvas.draw()
     
@@ -60,13 +75,22 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.canvas.setParent(self.main_frame)
         
         self.axes = self.fig.add_subplot(111, facecolor='White')
-        
-        if two_axes:
-            self.axes2 = self.axes.twinx()        
  
         # Create the navigation toolbar, tied to the canvas
         self.mpl_toolbar = NavigationToolbar(self.canvas, self.main_frame)
-                                
+
+        # Other GUI controls               
+        show_button = QtWidgets.QPushButton()
+        show_button.clicked.connect(self.plot_settings_view)
+        show_button.setIcon(QtGui.QIcon(":gear.png"))
+        show_button.setToolTip(self.tr("Plot settings"))
+        show_button.setStatusTip(self.tr("Plot settings"))
+
+        buttonbox0 = QtWidgets.QDialogButtonBox()
+        buttonbox0.addButton(show_button, QtWidgets.QDialogButtonBox.ActionRole)               
+
+        self.mpl_toolbar.addWidget(show_button) 
+                              
         vbox = QtWidgets.QVBoxLayout()        
         vbox.addWidget(self.mpl_toolbar)
         vbox.addWidget(self.canvas)
@@ -89,3 +113,8 @@ class RsheetPlot(QtWidgets.QMainWindow):
         quit_action.setShortcut('Ctrl+Q')
        
         self.file_menu.addAction(quit_action)
+        
+    def plot_settings_view(self):
+        settings_dialog = PlotSettingsDialog(self)
+        settings_dialog.setModal(True)
+        settings_dialog.show()         
