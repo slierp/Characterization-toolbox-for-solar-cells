@@ -1,4 +1,4 @@
-import matplotlib #, Tkinter, FileDialog
+import matplotlib as plt
 from PyQt5 import QtGui, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -10,7 +10,7 @@ rcParams.update({'figure.autolayout': True})
 font = {'family' : 'sans-serif',
         'size'   : 14}
 
-matplotlib.rc('font', **font)
+plt.rc('font', **font)
 
 class RsheetPlot(QtWidgets.QMainWindow):  
     
@@ -26,11 +26,13 @@ class RsheetPlot(QtWidgets.QMainWindow):
         
         data = parent.data
         row = parent.view.selectedIndexes()[0].row()
-        self.data_array = data[row] #.ix[:,2]
-        array_width = int(len(self.data_array)**0.5)
-        self.x = self.data_array.ix[:,0].values.reshape(array_width,array_width)
-        self.y = self.data_array.ix[:,1].values.reshape(array_width,array_width)
-        self.z = self.data_array.ix[:,2].values.reshape(array_width,array_width)
+        self.data_array = data[row]
+        self.x = self.data_array.ix[:,0]     
+        self.y = self.data_array.ix[:,1]
+        self.z = self.data_array.ix[:,2]
+        self.x_points = len(set(self.x)) # no of unique points
+        self.y_points = len(set(self.y))
+
         self.name = self.data_array.index.name
 
         self.interpolation_enabled = False
@@ -44,26 +46,33 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.on_draw()         
         
     def on_draw(self):
-        # Clear previous and re-draw everything
+        
+        plot = self.axes.scatter(self.x, self.y, c=self.z)
+        self.canvas.draw() # draw to enable extracting array from it
+                   
+        image = plot.get_array().reshape(self.x_points,self.y_points)
+
         self.axes.clear()
         self.fig.clear()
         self.axes = self.fig.add_subplot(111, facecolor='White')
 
         self.axes.set_xlabel(r'$\mathrm{\mathsf{x}}$', fontsize=24, weight='black')
         self.axes.set_ylabel(r'$\mathrm{\mathsf{y}}$', fontsize=24, weight='black')
-        
-        if not self.interpolation_enabled:
-            plot = self.axes.pcolormesh(self.x, self.y, self.z, cmap='Wistia')
+
+        if self.interpolation_enabled:            
+            plot = self.axes.imshow(image, origin='lower', interpolation='gaussian', cmap='Wistia')
         else:
-            plot = self.axes.imshow(self.z, interpolation='gaussian', cmap='Wistia')
-        
+            plot = self.axes.imshow(image, origin='lower', interpolation='none', cmap='Wistia')
+
         if self.colorbar_enabled:
             self.fig.colorbar(plot,ax=self.axes)
 
         if self.title_enabled:
             self.axes.set_title(self.name)
+            
+        self.canvas.draw() # perform the second and final draw
 
-        self.canvas.draw()
+        self.scale_min, self.scale_max = plot.get_clim()
     
     def create_main_frame(self,two_axes=False):
         self.main_frame = QtWidgets.QWidget()
