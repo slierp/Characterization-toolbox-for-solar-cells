@@ -18,8 +18,8 @@ class RsheetPlot(QtWidgets.QMainWindow):
     def __init__(self, parent):
         QtWidgets.QMainWindow.__init__(self)
         self.setWindowTitle(self.tr("Color map"))
-
         self.resize(1020, 752)
+        self.setStyleSheet('font-size: 12pt;')        
         frameGm = self.frameGeometry()
         centerPoint = QtWidgets.QDesktopWidget().availableGeometry().center()
         frameGm.moveCenter(centerPoint)
@@ -30,7 +30,16 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.data_array = data[row]
         self.x = self.data_array.ix[:,0]     
         self.y = self.data_array.ix[:,1]
-        self.z = self.data_array.ix[:,2]
+        
+        pos = self.data_array.ix[:,2]
+        neg = self.data_array.ix[:,3]
+        if (sum(pos) > 0) and (sum(neg) > 0): # do not use pos or neg if -1
+            self.z = (pos + neg)/2
+        elif sum(pos) > 0:
+            self.z = pos
+        else:
+            self.z = neg                        
+        
         self.x_points = len(set(self.x)) # no of unique points
         self.y_points = len(set(self.y))
 
