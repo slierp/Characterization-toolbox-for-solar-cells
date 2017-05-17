@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtWidgets, QtGui
-import os, ntpath
+import ntpath
 import pandas as pd
 from RsheetPlot import RsheetPlot
 
@@ -39,7 +39,11 @@ class RsheetWidget(QtCore.QObject):
             self.prev_dir_path = ntpath.dirname(filename)
             
             self.data.append(pd.read_csv(filename, skiprows=18, sep="\t", header=None, error_bad_lines=False))
-            self.data[-1].columns = ["x", "y", "pos", "neg"]
+            self.data[-1].columns = ["x", "y", "Rsh","Rsh_tmp"]
+            self.data[-1][self.data[-1] < 0] = None # set negative values to NaN
+            self.data[-1]['Rsh'] = self.data[-1][['Rsh','Rsh_tmp']].mean(axis=1) # average positive and negative measurement
+            del self.data[-1]['Rsh_tmp']
+            self.data[-1] = self.data[-1].dropna()
             
             ### add list view item ###
             str_a = ntpath.splitext(ntpath.basename(filename))[0]
@@ -59,49 +63,46 @@ class RsheetWidget(QtCore.QObject):
 
     def make_report(self):
         
-        return
+        if len(self.data):
+            self.reportname = QtWidgets.QFileDialog.getSaveFileName(self.parent,self.tr("Save file"), self.prev_dir_path, "Excel Files (*.xlsx)")
+            self.reportname = self.reportname[0]
+            
+            if not self.reportname:
+                return
 
-        dest_dir = QtWidgets.QFileDialog.getExistingDirectory(None, self.tr('Open directory'), self.prev_dir_path, QtWidgets.QFileDialog.ShowDirsOnly)
-        
-        if not dest_dir:
+            if self.reportname:
+                self.statusbar.showMessage(self.tr("Making an Excel report..."),3000)
+            else:
+                return
+        else:
+            self.statusbar.showMessage(self.tr("Please load data files"),3000)
             return
 
-        self.prev_dir_path = dest_dir
-            
-        yes_to_all = False
-        
-        filename = 'Blended image.png'
-        check_overwrite = False
-        save_path = ""
-        
-        # check if file exists and then ask if overwrite is oke
-        if os.name == 'nt': # if windows
-            save_path = dest_dir + '\\' + filename
-            if os.path.isfile(save_path):
-                check_overwrite = True
-        else: # if not windows
-            save_path = dest_dir + '\/' + filename
-            if os.path.isfile(save_path):
-                check_overwrite = True
+        try:
+            self.reportname.encode('ascii')
+        except:
+            msg = self.tr("Filenames with non-ASCII characters were found.\n\nThe application currently only supports ASCII filenames.")
+            QtWidgets.QMessageBox.about(self, self.tr("Warning"), msg) 
+            self.reportname = None
+            return
 
-        if check_overwrite and not yes_to_all:
-            reply = QtWidgets.QMessageBox.question(self, self.tr("Message"), "Overwrite \'" + filename + "\'?", QtWidgets.QMessageBox.YesToAll | QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.No)
-
-            if reply == QtWidgets.QMessageBox.No:                    
-                save_path = QtWidgets.QFileDialog.getSaveFileName(self,self.tr("Save file"), dest_dir, "PNG File (*.png)")
-                
-                if not save_path:
-                    return
-
-            if reply == QtWidgets.QMessageBox.YesToAll:
-                yes_to_all = True
-                
-            if reply == QtWidgets.QMessageBox.Cancel:
-                return
-                       
-        self.blend_image.save(save_path)
+        rp_summ = pd.DataFrame(columns=['Name','Average','Std.dev.','Min','Max'])                                       
+                                                   
+        for i in range(len(self.data)):
+            tmp_list = []
+            tmp_list.append(self.data[i].index.name)
+            tmp_list.append(self.data[i].ix[:,2].mean())
+            tmp_list.append(self.data[i].ix[:,2].std())
+            tmp_list.append(self.data[i].ix[:,2].min())
+            tmp_list.append(self.data[i].ix[:,2].max())
+            rp_summ.loc[i] = tmp_list
         
-        self.statusbar.showMessage(self.tr("Files saved"),3000)
+        rp_summ = rp_summ.round(3)
+        writer = pd.ExcelWriter(self.reportname, engine='xlsxwriter')
+        rp_summ.to_excel(writer,self.tr('Summary'))                
+        writer.save()                 
+        
+        self.statusbar.showMessage(self.tr("File saved"),3000)
                                     
     def show(self):
         
