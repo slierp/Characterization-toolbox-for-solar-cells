@@ -1,16 +1,17 @@
-import matplotlib as plt
+import matplotlib
 from PyQt5 import QtGui, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from matplotlib import rcParams
 from PlotSettingsDialog import PlotSettingsDialog
+from math import ceil, floor
 rcParams.update({'figure.autolayout': True})
 
 font = {'family' : 'sans-serif',
         'size'   : 14}
 
-plt.rc('font', **font)
+matplotlib.rc('font', **font)
 
 class RsheetPlot(QtWidgets.QMainWindow):  
     
@@ -38,8 +39,10 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.interpolation_enabled = False
         self.colorbar_enabled = True
         self.title_enabled = True
-        self.scale_min = None
-        self.scale_max = None
+        self.scale_min = -1
+        self.scale_max = -1
+        self.cmap = 0
+        self.cmap_options = ['nipy_spectral','Wistia','jet','rainbow','seismic','gray','magma','Reds','Greens','Blues']
         
         self.create_menu()
         self.create_main_frame()          
@@ -49,7 +52,12 @@ class RsheetPlot(QtWidgets.QMainWindow):
         
         plot = self.axes.scatter(self.x, self.y, c=self.z)
         self.canvas.draw() # draw to enable extracting array from it
-                   
+        
+        if (self.scale_min == -1) or (self.scale_max == -1):
+            self.scale_min, self.scale_max = plot.get_clim()
+            self.scale_min = floor(self.scale_min)
+            self.scale_max = ceil(self.scale_max)
+                               
         image = plot.get_array().reshape(self.x_points,self.y_points)
 
         self.axes.clear()
@@ -59,10 +67,10 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.axes.set_xlabel(r'$\mathrm{\mathsf{x}}$', fontsize=24, weight='black')
         self.axes.set_ylabel(r'$\mathrm{\mathsf{y}}$', fontsize=24, weight='black')
 
-        if self.interpolation_enabled:            
-            plot = self.axes.imshow(image, origin='lower', interpolation='gaussian', cmap='Wistia')
+        if not self.interpolation_enabled:            
+            plot = self.axes.imshow(image, origin='lower', interpolation='none', cmap=self.cmap_options[self.cmap], clim=(self.scale_min, self.scale_max))
         else:
-            plot = self.axes.imshow(image, origin='lower', interpolation='none', cmap='Wistia')
+            plot = self.axes.imshow(image, origin='lower', interpolation='gaussian', cmap=self.cmap_options[self.cmap], clim=(self.scale_min, self.scale_max))
 
         if self.colorbar_enabled:
             self.fig.colorbar(plot,ax=self.axes)
@@ -71,8 +79,6 @@ class RsheetPlot(QtWidgets.QMainWindow):
             self.axes.set_title(self.name)
             
         self.canvas.draw() # perform the second and final draw
-
-        self.scale_min, self.scale_max = plot.get_clim()
     
     def create_main_frame(self,two_axes=False):
         self.main_frame = QtWidgets.QWidget()
