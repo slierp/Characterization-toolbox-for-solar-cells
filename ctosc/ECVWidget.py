@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtWidgets, QtGui
 import ntpath
+import pandas as pd
 
 class ECVWidget(QtCore.QObject):
     def __init__(self, parent=None):
@@ -10,14 +11,13 @@ class ECVWidget(QtCore.QObject):
         self.view = self.parent.ecv_view        
         self.model = self.parent.ecv_model
         self.statusbar = self.parent.statusBar()
+        self.data = []
 
         self.prev_dir_path = ""
         
     def open_files(self):   
 
-        return
-        
-        fileNames = QtWidgets.QFileDialog.getOpenFileNames(self.parent,self.tr("Load files"), self.prev_dir_path, "PNG Files (*.png)")
+        fileNames = QtWidgets.QFileDialog.getOpenFileNames(self.parent,self.tr("Load files"), self.prev_dir_path, "CSV Files (*.csv)")
         fileNames = fileNames[0]
         
         if (not fileNames):
@@ -37,24 +37,23 @@ class ECVWidget(QtCore.QObject):
             # Set working directory so that user can remain where they are
             self.prev_dir_path = ntpath.dirname(filename)
             
-            self.images.append(filename)
-            
+            self.data.append(pd.read_csv(filename, skiprows=29, header=None, error_bad_lines=False, encoding='utf-8',usecols=[0,5,7]))
+
             ### add list view item ###
             str_a = ntpath.splitext(ntpath.basename(filename))[0]
-            str_a = str_a[0:39] # set name limited to 40 characters
+            str_a = str_a[0:100] # set name limited to 99 characters
+            self.data[-1].index.name = str_a
             item = QtGui.QStandardItem(str_a)
-            font = item.font()
-            item.setFont(font)
-            self.model.appendRow(item)                        
+            self.model.appendRow(item)
             
         if non_ascii_warning:
             msg = self.tr("Filenames with non-ASCII characters were found.\n\nThe application currently only supports ASCII filenames.")
             QtWidgets.QMessageBox.about(self, self.tr("Warning"), msg)            
                               
-        if len(self.images):
+        if len(self.data):
             self.statusbar.showMessage(self.tr("Ready"),3000)
         else:
-            self.statusbar.showMessage(self.tr("Please load image files"),3000)
+            self.statusbar.showMessage(self.tr("No files loaded"),3000)
                                     
     def show(self):
         
