@@ -1,5 +1,5 @@
-import matplotlib
 from PyQt5 import QtGui, QtWidgets
+import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -76,6 +76,10 @@ class RsheetPlot(QtWidgets.QMainWindow):
         if not self.interpolation_enabled:            
             plot = self.axes.imshow(self.matrix, origin='lower', interpolation='none', cmap=self.cmap_options[self.cmap], clim=(self.scale_min, self.scale_max))
         else:
+            #masked_array=np.ma.masked_where(self.matrix==0, self.matrix) # ignore bad points in interpolation; not working currently due to mpl bug
+            #cmap = matplotlib..colors.Colormap(self.cmap_options[self.cmap])
+            #cmap.set_bad('k',0.)
+            #plot = self.axes.imshow(masked_array, origin='lower', interpolation='gaussian', cmap=cmap, clim=(self.scale_min, self.scale_max))
             plot = self.axes.imshow(self.matrix, origin='lower', interpolation='gaussian', cmap=self.cmap_options[self.cmap], clim=(self.scale_min, self.scale_max))
 
         if self.colorbar_enabled:
