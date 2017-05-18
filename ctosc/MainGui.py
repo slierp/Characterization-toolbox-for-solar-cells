@@ -194,7 +194,7 @@ class MainGui(QtWidgets.QMainWindow):
         tabwidget = QtWidgets.QTabWidget()
         tabwidget.addTab(tab0, "Rsheet")
         tabwidget.addTab(tab1, "ECV")
-        tabwidget.addTab(tab2, "Average PL/EL")
+        tabwidget.addTab(tab2, "PL/EL")
   
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(tabwidget)           
