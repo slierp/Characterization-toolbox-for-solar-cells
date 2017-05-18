@@ -4,9 +4,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from matplotlib import rcParams
-from RshPlotSettingsDialog import RshPlotSettingsDialog
-from math import ceil, floor
-import numpy as np
+from ECVPlotSettingsDialog import ECVPlotSettingsDialog
 rcParams.update({'figure.autolayout': True})
 
 font = {'family' : 'sans-serif',
@@ -14,7 +12,9 @@ font = {'family' : 'sans-serif',
 
 matplotlib.rc('font', **font)
 
-class RsheetPlot(QtWidgets.QMainWindow):  
+cl = ['#4F81BD', '#C0504D', '#9BBB59','#F79646','#8064A2','#4BACC6','0','0.5']
+
+class ECVPlot(QtWidgets.QMainWindow):  
     
     def __init__(self, parent):
         QtWidgets.QMainWindow.__init__(self)
@@ -27,35 +27,28 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.move(frameGm.topLeft())
         
         data = parent.data
-        row = parent.view.selectedIndexes()[0].row()
-        self.data_array = data[row]
-        self.x = self.data_array.ix[:,0].tolist()     
-        self.y = self.data_array.ix[:,1].tolist()       
-        self.z  = self.data_array.ix[:,2].tolist()                        
+        self.rows = []
+        for i in range(len(parent.view.selectedIndexes())):
+            self.rows.append(parent.view.selectedIndexes()[i].row())
         
-        self.x_points = len(set(self.x)) # no of unique points
-        self.y_points = len(set(self.y))
-        self.x_ticks = sorted(set(self.x))
-        self.y_ticks = sorted(set(self.y))
+        self.x = []
+        self.y0 = []
+        self.y1 = []
+        self.name = []
+        for i in self.rows:
+            self.x.append(data[i].ix[:,0].tolist())
+            self.y0.append(data[i].ix[:,5].tolist())
+            self.y1.append(data[i].ix[:,7].tolist())
+            self.name.append(data[i].index.name)
 
-        for i in range(len(self.x)): # replace x_values for x-point number
-            self.x[i] = self.x_ticks.index(self.x[i])
-
-        for i in range(len(self.y)): # replace y_values for y-point number
-            self.y[i] = self.y_ticks.index(self.y[i])
-
-        self.matrix = np.zeros([self.x_points,self.y_points])
-        self.matrix[self.x,self.y] = self.z # make image matrix
-
-        self.name = self.data_array.index.name
-
-        self.interpolation_enabled = False
-        self.colorbar_enabled = True
-        self.title_enabled = True
-        self.scale_min = floor(min(self.z))
-        self.scale_max = ceil(max(self.z))
-        self.cmap = 0
-        self.cmap_options = ['nipy_spectral','Wistia','jet','rainbow','seismic','gray','magma','Reds','Greens','Blues']
+        self.grid_enabled = True
+        self.legend_enabled = True
+        self.dots_enabled = True
+        self.dotsize = 4
+        self.lines_enabled = True
+        self.linewidth = 2
+        self.show_only_ndoping = False
+        self.show_only_pdoping = False
         
         self.create_menu()
         self.create_main_frame()          
@@ -64,31 +57,43 @@ class RsheetPlot(QtWidgets.QMainWindow):
     def on_draw(self):
 
         self.axes.clear()
-        self.fig.clear()
-        self.axes = self.fig.add_subplot(111, facecolor='White')
+        
+        self.axes.grid(self.grid_enabled)
 
-        self.axes.set_xticklabels([0]+self.x_ticks) # zero added because mpl seems to ignore first value
-        self.axes.set_yticklabels([0]+self.y_ticks)
+        self.axes.set_xlabel(r'$\mathrm{\mathsf{Depth\ [\mu m]}}$', fontsize=24, weight='black')
+        self.axes.set_ylabel(r'$\mathrm{\mathsf{N\ [cm^{-3}]}}$', fontsize=24, weight='black')
 
-        self.axes.set_xlabel(r'$\mathrm{\mathsf{x}}$', fontsize=24, weight='black')
-        self.axes.set_ylabel(r'$\mathrm{\mathsf{y}}$', fontsize=24, weight='black')
+        self.axes.tick_params(pad=8) 
 
-        if not self.interpolation_enabled:            
-            plot = self.axes.imshow(self.matrix, origin='lower', interpolation='none', cmap=self.cmap_options[self.cmap], clim=(self.scale_min, self.scale_max))
-        else:
-            #masked_array=np.ma.masked_where(self.matrix==0, self.matrix) # ignore bad points in interpolation; not working currently due to mpl bug
-            #cmap = matplotlib..colors.Colormap(self.cmap_options[self.cmap])
-            #cmap.set_bad('k',0.)
-            #plot = self.axes.imshow(masked_array, origin='lower', interpolation='gaussian', cmap=cmap, clim=(self.scale_min, self.scale_max))
-            plot = self.axes.imshow(self.matrix, origin='lower', interpolation='gaussian', cmap=self.cmap_options[self.cmap], clim=(self.scale_min, self.scale_max))
-
-        if self.colorbar_enabled:
-            self.fig.colorbar(plot,ax=self.axes)
-
-        if self.title_enabled:
-            self.axes.set_title(self.name)
+        for i in range(len(self.rows)):
+            color0 = cl[i % len(cl)]
+            edge_color0 = color0
+            color1 = cl[i+2 % len(cl)]
+            edge_color1 = color1
+    
+            if self.dots_enabled and self.lines_enabled:
+                style = '-o'
+            elif self.dots_enabled:
+                style = '.'
+            else:
+                style = '-'
             
-        self.canvas.draw() # perform the second and final draw
+            if not self.show_only_pdoping:
+                count = sum(j > 0 for j in self.y0[i]) # do not plot dataset with zero or one data points
+                if count > 1:
+                    self.axes.plot(self.x[i],self.y0[i],style,c=color0,markersize=self.dotsize,markeredgecolor=edge_color0,linewidth=self.linewidth,label=self.name[i])
+            
+            if not self.show_only_ndoping:
+                count = sum(j > 0 for j in self.y1[i])
+                if count > 1:
+                    self.axes.plot(self.x[i],self.y1[i],style,c=color1,markersize=self.dotsize,markeredgecolor=edge_color1,linewidth=self.linewidth,label=self.name[i])
+            
+        self.axes.set_yscale('log')
+    
+        if self.legend_enabled:
+            self.axes.legend(loc='lower left',scatterpoints=1,markerscale=3,frameon=True)
+            
+        self.canvas.draw()
         
     def create_main_frame(self,two_axes=False):
         self.main_frame = QtWidgets.QWidget()
@@ -140,6 +145,6 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.file_menu.addAction(quit_action)
         
     def plot_settings_view(self):
-        settings_dialog = RshPlotSettingsDialog(self)
+        settings_dialog = ECVPlotSettingsDialog(self)
         settings_dialog.setModal(True)
         settings_dialog.show()         

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtWidgets
 
-class PlotSettingsDialog(QtWidgets.QDialog):
+class RshPlotSettingsDialog(QtWidgets.QDialog):
     
     def __init__(self, parent):
         super(QtWidgets.QDialog, self).__init__(parent)

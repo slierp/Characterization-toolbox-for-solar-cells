@@ -28,7 +28,8 @@ class MainGui(QtWidgets.QMainWindow):
         
         self.ecv_view = QtWidgets.QTreeView()
         self.ecv_model = QtGui.QStandardItemModel()
-        self.ecv_widget = ECVWidget(self)        
+        self.ecv_widget = ECVWidget(self)
+        self.ecv_view.doubleClicked.connect(self.ecv_widget.show)        
 
         self.imageblend_view = QtWidgets.QTreeView()
         self.imageblend_model = QtGui.QStandardItemModel()
@@ -102,7 +103,7 @@ class MainGui(QtWidgets.QMainWindow):
         self.ecv_model.setHorizontalHeaderLabels([self.tr('Files')])
         self.ecv_view.setRootIsDecorated(False)
         self.ecv_view.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)
-        self.ecv_view.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
+        self.ecv_view.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
         self.ecv_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)        
 
         ecv_open_files_button = QtWidgets.QPushButton()

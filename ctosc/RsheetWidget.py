@@ -128,7 +128,8 @@ class RsheetWidget(QtCore.QObject):
 
         self.statusbar.showMessage(self.tr("Ready"),3000)            
         
-    def clear_data(self):         
+    def clear_data(self):
+        self.data = []        
         self.model.clear()
         self.model.setHorizontalHeaderLabels(['Files'])
         self.statusbar.showMessage(self.tr("All data has been cleared"),3000)        

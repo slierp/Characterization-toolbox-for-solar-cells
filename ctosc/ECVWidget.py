@@ -2,6 +2,7 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
 import ntpath
 import pandas as pd
+from ECVPlot import ECVPlot
 
 class ECVWidget(QtCore.QObject):
     def __init__(self, parent=None):
@@ -12,6 +13,7 @@ class ECVWidget(QtCore.QObject):
         self.model = self.parent.ecv_model
         self.statusbar = self.parent.statusBar()
         self.data = []
+        self.wid = None
 
         self.prev_dir_path = ""
         
@@ -57,17 +59,25 @@ class ECVWidget(QtCore.QObject):
                                     
     def show(self):
         
-        return
-        
-        if not self.blend_image:
-            self.statusbar.showMessage(self.tr("Please blend image files"),3000)
-            return
+        if (not len(self.data)):
+            self.statusbar.showMessage(self.tr("Please load data files"),3000)
+            return      
 
-        self.blend_image.show()
+        self.statusbar.showMessage(self.tr("Creating plot window..."),3000)
 
-        self.statusbar.showMessage(self.tr("Ready"),3000)            
+        if (self.wid):
+            if (self.wid.isWindow()):
+                # close previous instances of child windows to save system memory                
+                self.wid.close()                
+
+        self.wid = ECVPlot(self)
+
+        self.wid.show()
+
+        self.statusbar.showMessage(self.tr("Ready"),3000)           
         
-    def clear_data(self):         
+    def clear_data(self):
+        self.data = []         
         self.model.clear()
         self.model.setHorizontalHeaderLabels(['Files'])
         self.statusbar.showMessage(self.tr("All data has been cleared"),3000)        
