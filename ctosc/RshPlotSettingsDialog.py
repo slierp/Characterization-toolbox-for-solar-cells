@@ -64,13 +64,8 @@ class RshPlotSettingsDialog(QtWidgets.QDialog):
         hbox.addStretch(1)
         group_vbox.addLayout(hbox)
         
-        if self.parent.parent.plot_settings:
-            default_enabled = True
-        else:
-            default_enabled = False
-        
         self.default_cb = QtWidgets.QCheckBox(self.tr("Keep settings for other data sets"))
-        self.default_cb.setChecked(default_enabled)
+        self.default_cb.setChecked(True if self.parent.parent.plot_settings else False)
         group_vbox.addWidget(self.default_cb)        
 
         group_area.setLayout(group_vbox)

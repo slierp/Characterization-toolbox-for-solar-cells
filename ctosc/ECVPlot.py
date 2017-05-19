@@ -26,10 +26,11 @@ class ECVPlot(QtWidgets.QMainWindow):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
         
-        data = parent.data
+        self.parent = parent
+        data = self.parent.data
         self.rows = []
-        for i in range(len(parent.view.selectedIndexes())):
-            self.rows.append(parent.view.selectedIndexes()[i].row())
+        for i in range(len(self.parent.view.selectedIndexes())):
+            self.rows.append(self.parent.view.selectedIndexes()[i].row())
         
         self.x = []
         self.y0 = []
@@ -41,14 +42,24 @@ class ECVPlot(QtWidgets.QMainWindow):
             self.y1.append(data[i].ix[:,7].tolist())
             self.name.append(data[i].index.name)
 
-        self.grid_enabled = True
-        self.legend_enabled = True
-        self.dots_enabled = True
-        self.dotsize = 4
-        self.lines_enabled = True
-        self.linewidth = 2
-        self.show_only_ndoping = False
-        self.show_only_pdoping = False
+        if not self.parent.plot_settings:
+            self.grid_enabled = True
+            self.legend_enabled = True
+            self.dots_enabled = True
+            self.dotsize = 4
+            self.lines_enabled = True
+            self.linewidth = 2
+            self.show_only_ndoping = False
+            self.show_only_pdoping = False
+        else:
+            self.grid_enabled = self.parent.plot_settings['grid_enabled']
+            self.legend_enabled = self.parent.plot_settings['legend_enabled']
+            self.dots_enabled = self.parent.plot_settings['dots_enabled']
+            self.dotsize = self.parent.plot_settings['dotsize']
+            self.lines_enabled = self.parent.plot_settings['lines_enabled']
+            self.linewidth = self.parent.plot_settings['linewidth'] 
+            self.show_only_ndoping = self.parent.plot_settings['show_only_ndoping']
+            self.show_only_pdoping = self.parent.plot_settings['show_only_pdoping']
         
         self.create_menu()
         self.create_main_frame()          

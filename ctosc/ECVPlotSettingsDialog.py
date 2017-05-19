@@ -62,6 +62,10 @@ class ECVPlotSettingsDialog(QtWidgets.QDialog):
         self.ptype_cb = QtWidgets.QCheckBox(self.tr("Show only p-type doping"))
         self.ptype_cb.setChecked(self.parent.show_only_pdoping)
         group_vbox.addWidget(self.ptype_cb)
+        
+        self.default_cb = QtWidgets.QCheckBox(self.tr("Keep settings for other data sets"))
+        self.default_cb.setChecked(True if self.parent.parent.plot_settings else False)
+        group_vbox.addWidget(self.default_cb)         
 
         group_area.setLayout(group_vbox)
         vbox.addWidget(group_area)
@@ -89,6 +93,19 @@ class ECVPlotSettingsDialog(QtWidgets.QDialog):
         self.parent.linewidth = self.lines_sb.value()
         self.parent.show_only_ndoping = self.ntype_cb.isChecked()
         self.parent.show_only_pdoping = self.ptype_cb.isChecked()        
+
+        if self.default_cb.isChecked():
+            self.parent.parent.plot_settings = {}
+            self.parent.parent.plot_settings['grid_enabled'] = self.grid_cb.isChecked()
+            self.parent.parent.plot_settings['legend_enabled'] = self.legend_cb.isChecked()
+            self.parent.parent.plot_settings['dots_enabled'] = self.dots_cb.isChecked()
+            self.parent.parent.plot_settings['dotsize'] = self.dots_sb.value()
+            self.parent.parent.plot_settings['lines_enabled'] = self.lines_cb.isChecked()
+            self.parent.parent.plot_settings['linewidth'] = self.lines_sb.value()
+            self.parent.parent.plot_settings['show_only_ndoping'] = self.ntype_cb.isChecked()
+            self.parent.parent.plot_settings['show_only_pdoping'] = self.ptype_cb.isChecked()
+        else:
+            self.parent.parent.plot_settings = None
 
         self.parent.on_draw()
         self.close()

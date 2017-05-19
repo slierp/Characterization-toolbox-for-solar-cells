@@ -14,8 +14,8 @@ class ECVWidget(QtCore.QObject):
         self.statusbar = self.parent.statusBar()
         self.data = []
         self.wid = None
-
         self.prev_dir_path = ""
+        self.plot_settings = None
         
     def open_files(self):   
 

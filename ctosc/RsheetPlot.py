@@ -51,7 +51,7 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.name = self.data_array.index.name
         self.cmap_options = ['nipy_spectral','Wistia','jet','rainbow','seismic','gray','magma','Reds','Greens','Blues']
 
-        if not parent.plot_settings:
+        if not self.parent.plot_settings:
             self.interpolation_enabled = False
             self.colorbar_enabled = True
             self.title_enabled = True
