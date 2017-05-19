@@ -19,8 +19,8 @@ class ImageBlendWidget(QtCore.QObject):
     def open_files(self):   
 
         if self.blend_image:
-            msg = self.tr("Please remove existing blend image.")
-            QtWidgets.QMessageBox.about(self, self.tr("Warning"), msg)        
+            msg = self.tr("Please remove existing blend image first.")
+            QtWidgets.QMessageBox.about(self.parent, self.tr("Warning"), msg)        
             return
         
         fileNames = QtWidgets.QFileDialog.getOpenFileNames(self.parent,self.tr("Load files"), self.prev_dir_path, "PNG Files (*.png)")
@@ -54,8 +54,8 @@ class ImageBlendWidget(QtCore.QObject):
             self.model.appendRow(item)                        
             
         if non_ascii_warning:
-            msg = self.tr("Filenames with non-ASCII characters were found.\n\nThe application currently only supports ASCII filenames.")
-            QtWidgets.QMessageBox.about(self, self.tr("Warning"), msg)            
+            msg = self.tr("[Error] Filenames with non-ASCII characters were found. The application currently only supports ASCII filenames.")
+            QtWidgets.QMessageBox.about(self.parent, self.tr("Warning"), msg)            
                               
         if len(self.images):
             self.statusbar.showMessage(self.tr("Ready"),3000)
@@ -118,9 +118,20 @@ class ImageBlendWidget(QtCore.QObject):
             self.statusbar.showMessage(self.tr("Please load data files"),3000)
             return     
 
-        self.blend_image=Image.open(self.images[0])
+        try:
+            self.blend_image=Image.open(self.images[0])
+        except:
+            warning_string = self.tr("[Error] First file could not be read properly. Operation was stopped.")
+            QtWidgets.QMessageBox.about(self.parent, self.tr("Warning"), warning_string) 
+            return
+
         for i in range(1,len(self.images)):
-            image = Image.open(self.images[i])
+            try:
+                image = Image.open(self.images[i])
+            except:
+                read_warning = True
+                continue
+            
             self.blend_image = Image.blend(self.blend_image, image, 1.0/(i+1))
 
         # Clearing associated data sets
@@ -133,6 +144,10 @@ class ImageBlendWidget(QtCore.QObject):
         font = item.font()
         item.setFont(font)
         self.model.appendRow(item) 
+
+        if read_warning:
+            warning_string = self.tr("[Error] Some files could not be read properly.")
+            QtWidgets.QMessageBox.about(self.parent, self.tr("Warning"), warning_string)
                 
         self.statusbar.showMessage(self.tr("Ready"),3000)
                                     

@@ -26,6 +26,7 @@ class ECVWidget(QtCore.QObject):
             return          
         
         non_ascii_warning = False
+        read_warning = False        
 
         for filename in fileNames:
 
@@ -39,7 +40,11 @@ class ECVWidget(QtCore.QObject):
             # Set working directory so that user can remain where they are
             self.prev_dir_path = ntpath.dirname(filename)
             
-            self.data.append(pd.read_csv(filename, skiprows=29, header=None, error_bad_lines=False, encoding='utf-8',usecols=[0,5,7]))
+            try:
+                self.data.append(pd.read_csv(filename, skiprows=29, header=None, error_bad_lines=False, encoding='utf-8',usecols=[0,5,7]))
+            except:
+                read_warning = True
+                continue                
 
             ### add list view item ###
             str_a = ntpath.splitext(ntpath.basename(filename))[0]
@@ -47,11 +52,18 @@ class ECVWidget(QtCore.QObject):
             self.data[-1].index.name = str_a
             item = QtGui.QStandardItem(str_a)
             self.model.appendRow(item)
+                              
+        warning_string = ""
+
+        if read_warning:
+            warning_string += self.tr("[Error] Some files could not be read properly. ") 
             
         if non_ascii_warning:
-            msg = self.tr("Filenames with non-ASCII characters were found.\n\nThe application currently only supports ASCII filenames.")
-            QtWidgets.QMessageBox.about(self, self.tr("Warning"), msg)            
-                              
+            warning_string += self.tr("[Error] Filenames with non-ASCII characters were found. The application currently only supports ASCII filenames.")
+        
+        if read_warning or non_ascii_warning:
+            QtWidgets.QMessageBox.about(self.parent, self.tr("Warning"), warning_string)              
+            
         if len(self.data):
             self.statusbar.showMessage(self.tr("Ready"),3000)
         else:
