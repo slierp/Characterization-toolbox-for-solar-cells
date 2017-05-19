@@ -63,7 +63,7 @@ class ECVPlotSettingsDialog(QtWidgets.QDialog):
         self.ptype_cb.setChecked(self.parent.show_only_pdoping)
         group_vbox.addWidget(self.ptype_cb)
         
-        self.default_cb = QtWidgets.QCheckBox(self.tr("Keep settings for other data sets"))
+        self.default_cb = QtWidgets.QCheckBox(self.tr("Keep settings for next data plots"))
         self.default_cb.setChecked(True if self.parent.parent.plot_settings else False)
         group_vbox.addWidget(self.default_cb)         
 

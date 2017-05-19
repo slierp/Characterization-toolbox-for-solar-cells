@@ -64,7 +64,7 @@ class RshPlotSettingsDialog(QtWidgets.QDialog):
         hbox.addStretch(1)
         group_vbox.addLayout(hbox)
         
-        self.default_cb = QtWidgets.QCheckBox(self.tr("Keep settings for other data sets"))
+        self.default_cb = QtWidgets.QCheckBox(self.tr("Keep settings for next color maps"))
         self.default_cb.setChecked(True if self.parent.parent.plot_settings else False)
         group_vbox.addWidget(self.default_cb)        
 
