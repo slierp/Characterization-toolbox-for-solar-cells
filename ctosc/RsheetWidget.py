@@ -15,6 +15,7 @@ class RsheetWidget(QtCore.QObject):
         self.data = []
         self.wid = None
         self.prev_dir_path = ""
+        self.plot_settings = None
         
     def open_files(self):
         

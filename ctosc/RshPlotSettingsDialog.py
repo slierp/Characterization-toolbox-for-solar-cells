@@ -63,6 +63,15 @@ class RshPlotSettingsDialog(QtWidgets.QDialog):
         hbox.addWidget(description)
         hbox.addStretch(1)
         group_vbox.addLayout(hbox)
+        
+        if self.parent.parent.plot_settings:
+            default_enabled = True
+        else:
+            default_enabled = False
+        
+        self.default_cb = QtWidgets.QCheckBox(self.tr("Keep settings for other data sets"))
+        self.default_cb.setChecked(default_enabled)
+        group_vbox.addWidget(self.default_cb)        
 
         group_area.setLayout(group_vbox)
         vbox.addWidget(group_area)
@@ -88,6 +97,17 @@ class RshPlotSettingsDialog(QtWidgets.QDialog):
         self.parent.scale_min = self.min_sb.value()
         self.parent.scale_max = self.max_sb.value()
         self.parent.cmap = self.cmap_combobox.currentIndex()
+        
+        if self.default_cb.isChecked():
+            self.parent.parent.plot_settings = {}
+            self.parent.parent.plot_settings['interpolation_enabled'] = self.interpolation_cb.isChecked()
+            self.parent.parent.plot_settings['colorbar_enabled'] = self.colorbar_cb.isChecked()
+            self.parent.parent.plot_settings['title_enabled'] = self.title_cb.isChecked()
+            self.parent.parent.plot_settings['scale_min'] = self.min_sb.value()
+            self.parent.parent.plot_settings['scale_max'] = self.max_sb.value()
+            self.parent.parent.plot_settings['cmap'] = self.cmap_combobox.currentIndex()
+        else:
+            self.parent.parent.plot_settings = None
 
         self.parent.on_draw()
         self.close()

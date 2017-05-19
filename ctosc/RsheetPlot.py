@@ -26,8 +26,9 @@ class RsheetPlot(QtWidgets.QMainWindow):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
         
-        data = parent.data
-        row = parent.view.selectedIndexes()[0].row()
+        self.parent = parent
+        data = self.parent.data
+        row = self.parent.view.selectedIndexes()[0].row()
         self.data_array = data[row]
         self.x = self.data_array.ix[:,0].tolist()     
         self.y = self.data_array.ix[:,1].tolist()       
@@ -48,14 +49,22 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.matrix[self.x,self.y] = self.z # make image matrix
 
         self.name = self.data_array.index.name
-
-        self.interpolation_enabled = False
-        self.colorbar_enabled = True
-        self.title_enabled = True
-        self.scale_min = floor(min(self.z))
-        self.scale_max = ceil(max(self.z))
-        self.cmap = 0
         self.cmap_options = ['nipy_spectral','Wistia','jet','rainbow','seismic','gray','magma','Reds','Greens','Blues']
+
+        if not parent.plot_settings:
+            self.interpolation_enabled = False
+            self.colorbar_enabled = True
+            self.title_enabled = True
+            self.scale_min = floor(min(self.z))
+            self.scale_max = ceil(max(self.z))
+            self.cmap = 0
+        else:
+            self.interpolation_enabled = self.parent.plot_settings['interpolation_enabled']
+            self.colorbar_enabled = self.parent.plot_settings['colorbar_enabled']
+            self.title_enabled = self.parent.plot_settings['title_enabled']
+            self.scale_min = self.parent.plot_settings['scale_min']
+            self.scale_max = self.parent.plot_settings['scale_max']
+            self.cmap = self.parent.plot_settings['cmap']          
         
         self.create_menu()
         self.create_main_frame()          
