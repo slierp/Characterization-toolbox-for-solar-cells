@@ -77,10 +77,8 @@ class ECVPlot(QtWidgets.QMainWindow):
         self.axes.tick_params(pad=8) 
 
         for i in range(len(self.rows)):
-            color0 = cl[i % len(cl)]
-            edge_color0 = color0
-            color1 = cl[i+2 % len(cl)]
-            edge_color1 = color1
+            color = cl[i % len(cl)]
+            edge_color = color
     
             if self.dots_enabled and self.lines_enabled:
                 style = '-o'
@@ -92,12 +90,12 @@ class ECVPlot(QtWidgets.QMainWindow):
             if not self.show_only_pdoping:
                 count = sum(j > 0 for j in self.y0[i]) # do not plot dataset with zero or one data points
                 if count > 1:
-                    self.axes.plot(self.x[i],self.y0[i],style,c=color0,markersize=self.dotsize,markeredgecolor=edge_color0,linewidth=self.linewidth,label=self.name[i])
+                    self.axes.plot(self.x[i],self.y0[i],style,c=color,markersize=self.dotsize,markeredgecolor=edge_color,linewidth=self.linewidth,label=self.name[i])
             
             if not self.show_only_ndoping:
                 count = sum(j > 0 for j in self.y1[i])
                 if count > 1:
-                    self.axes.plot(self.x[i],self.y1[i],style,c=color1,markersize=self.dotsize,markeredgecolor=edge_color1,linewidth=self.linewidth,label=self.name[i])
+                    self.axes.plot(self.x[i],self.y1[i],style,c=color,markersize=self.dotsize,markeredgecolor=edge_color,linewidth=self.linewidth,label=self.name[i])
             
         self.axes.set_yscale('log')
     
