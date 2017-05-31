@@ -150,6 +150,25 @@ class ImageBlendWidget(QtCore.QObject):
             QtWidgets.QMessageBox.about(self.parent, self.tr("Warning"), warning_string)
                 
         self.statusbar.showMessage(self.tr("Ready"),3000)
+
+    def make_report(self):
+        
+        if not len(self.images):
+            self.statusbar.showMessage(self.tr("Please load data files"),3000)
+            return
+
+        for i in len(self.images):        
+            image = Image.open(self.images[i])
+            image_grey = image.convert('LA') # convert to grayscale
+            width,height = image.size
+    
+            total=0
+            for i in range(0,width):
+                for j in range(0,height):
+                    total += image_grey.getpixel((i,j))[0]
+    
+            mean = total / (width * height)
+            print(mean)
                                     
     def show_image(self):
         
