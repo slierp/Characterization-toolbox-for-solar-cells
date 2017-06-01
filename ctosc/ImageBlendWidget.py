@@ -157,7 +157,7 @@ class ImageBlendWidget(QtCore.QObject):
             self.statusbar.showMessage(self.tr("Please load data files"),3000)
             return
 
-        for i in len(self.images):        
+        for i in range(len(self.images)):        
             image = Image.open(self.images[i])
             image_grey = image.convert('LA') # convert to grayscale
             width,height = image.size
@@ -168,7 +168,32 @@ class ImageBlendWidget(QtCore.QObject):
                     total += image_grey.getpixel((i,j))[0]
     
             mean = total / (width * height)
-            print(mean)
+
+            total=0
+            pixels = 0
+            for i in range(0,width):
+                for j in range(0,height):
+                    pixel_value = image_grey.getpixel((i,j))[0]
+                    
+                    if pixel_value > 0.5*mean:
+                        total += pixel_value
+                        pixels += 1
+            
+            mean = total / pixels
+            
+            total=0
+            pixels = 0
+            for i in range(0,width):
+                for j in range(0,height):
+                    
+                    pixel_value = image_grey.getpixel((i,j))[0]
+                    
+                    if pixel_value:
+                        total += (mean-pixel_value)**2
+                        pixels += 1
+            
+            stdev = (total / pixels)**0.5
+            print(100*stdev/mean)
                                     
     def show_image(self):
         
