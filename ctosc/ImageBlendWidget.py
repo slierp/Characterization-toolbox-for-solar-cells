@@ -118,6 +118,8 @@ class ImageBlendWidget(QtCore.QObject):
             self.statusbar.showMessage(self.tr("Please load data files"),3000)
             return     
 
+        read_warning = False
+
         try:
             self.blend_image=Image.open(self.images[0])
         except:
