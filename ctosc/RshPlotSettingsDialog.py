@@ -23,7 +23,7 @@ class RshPlotSettingsDialog(QtWidgets.QDialog):
         self.colorbar_cb.setChecked(self.parent.colorbar_enabled)
         group_vbox.addWidget(self.colorbar_cb)
         
-        self.interpolation_cb = QtWidgets.QCheckBox(self.tr("Gaussian interpolation"))
+        self.interpolation_cb = QtWidgets.QCheckBox(self.tr("Interpolation"))
         self.interpolation_cb.setChecked(self.parent.interpolation_enabled)
         group_vbox.addWidget(self.interpolation_cb)
                     

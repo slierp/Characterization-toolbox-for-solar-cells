@@ -46,6 +46,7 @@ class RsheetPlot(QtWidgets.QMainWindow):
             self.y[i] = self.y_ticks.index(self.y[i])
 
         self.matrix = np.zeros([self.x_points,self.y_points])
+        self.matrix[:] = np.NaN
         self.matrix[self.x,self.y] = self.z # make image matrix
 
         self.name = self.data_array.index.name
@@ -82,17 +83,18 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.axes.set_xlabel(r'$\mathrm{\mathsf{x}}$', fontsize=24, weight='black')
         self.axes.set_ylabel(r'$\mathrm{\mathsf{y}}$', fontsize=24, weight='black')
 
-        if not self.interpolation_enabled:            
-            plot = self.axes.imshow(self.matrix, origin='lower', interpolation='none', cmap=self.cmap_options[self.cmap], clim=(self.scale_min, self.scale_max))
+        if not self.interpolation_enabled:
+            custom_cmap = matplotlib.cm.get_cmap(self.cmap_options[self.cmap])
+            custom_cmap.set_bad('k',1.0)
+            plot = self.axes.imshow(self.matrix, origin='lower', interpolation='none', cmap=custom_cmap, clim=(self.scale_min, self.scale_max))           
         else:
-            #masked_array=np.ma.masked_where(self.matrix==0, self.matrix) # ignore bad points in interpolation; not working currently due to mpl bug
-            #cmap = matplotlib..colors.Colormap(self.cmap_options[self.cmap])
-            #cmap.set_bad('k',0.)
-            #plot = self.axes.imshow(masked_array, origin='lower', interpolation='gaussian', cmap=cmap, clim=(self.scale_min, self.scale_max))
-            plot = self.axes.imshow(self.matrix, origin='lower', interpolation='gaussian', cmap=self.cmap_options[self.cmap], clim=(self.scale_min, self.scale_max))
+            custom_cmap = matplotlib.cm.get_cmap(self.cmap_options[self.cmap])
+            custom_cmap.set_bad('k',1.0)            
+            plot = self.axes.imshow(self.matrix, origin='lower', interpolation='hanning', cmap=custom_cmap, clim=(self.scale_min, self.scale_max))
 
         if self.colorbar_enabled:
-            self.fig.colorbar(plot,ax=self.axes)
+            colorbar = self.fig.colorbar(plot,ax=self.axes)
+            colorbar.set_clim(self.scale_min, self.scale_max)
 
         if self.title_enabled:
             self.axes.set_title(self.name)
