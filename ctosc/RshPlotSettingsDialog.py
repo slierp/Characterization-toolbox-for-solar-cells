@@ -15,18 +15,6 @@ class RshPlotSettingsDialog(QtWidgets.QDialog):
         group_area.setFlat(True)
         group_vbox = QtWidgets.QVBoxLayout()
 
-        self.title_cb = QtWidgets.QCheckBox(self.tr("Title"))
-        self.title_cb.setChecked(self.parent.title_enabled)
-        group_vbox.addWidget(self.title_cb)
-
-        self.colorbar_cb = QtWidgets.QCheckBox(self.tr("Color bar"))
-        self.colorbar_cb.setChecked(self.parent.colorbar_enabled)
-        group_vbox.addWidget(self.colorbar_cb)
-        
-        self.interpolation_cb = QtWidgets.QCheckBox(self.tr("Interpolation"))
-        self.interpolation_cb.setChecked(self.parent.interpolation_enabled)
-        group_vbox.addWidget(self.interpolation_cb)
-                    
         self.min_sb = QtWidgets.QDoubleSpinBox()
         self.min_sb.setAccelerated(True)
         self.min_sb.setMaximum(9999)
@@ -52,6 +40,25 @@ class RshPlotSettingsDialog(QtWidgets.QDialog):
         hbox.addWidget(description)
         hbox.addStretch(1)
         group_vbox.addLayout(hbox)
+
+        self.title_cb = QtWidgets.QCheckBox(self.tr("Title"))
+        self.title_cb.setChecked(self.parent.title_enabled)
+        group_vbox.addWidget(self.title_cb)
+
+        self.colorbar_cb = QtWidgets.QCheckBox(self.tr("Color bar"))
+        self.colorbar_cb.setChecked(self.parent.colorbar_enabled)
+        group_vbox.addWidget(self.colorbar_cb)
+        
+        self.interpolation_combobox = QtWidgets.QComboBox(self)
+        for i in self.parent.interpolation_options:
+            self.interpolation_combobox.addItem(i)               
+        self.interpolation_combobox.setCurrentIndex(self.parent.interpolation)
+        hbox = QtWidgets.QHBoxLayout()
+        description = QtWidgets.QLabel(self.tr("Interpolation"))
+        hbox.addWidget(self.interpolation_combobox)
+        hbox.addWidget(description)
+        hbox.addStretch(1)
+        group_vbox.addLayout(hbox)                    
 
         self.cmap_combobox = QtWidgets.QComboBox(self)
         for i in self.parent.cmap_options:
@@ -86,20 +93,20 @@ class RshPlotSettingsDialog(QtWidgets.QDialog):
         self.setMinimumWidth(800)        
         
     def read(self):
+        self.parent.scale_min = self.min_sb.value()
+        self.parent.scale_max = self.max_sb.value()        
         self.parent.title_enabled = self.title_cb.isChecked()
         self.parent.colorbar_enabled = self.colorbar_cb.isChecked()        
-        self.parent.interpolation_enabled = self.interpolation_cb.isChecked()
-        self.parent.scale_min = self.min_sb.value()
-        self.parent.scale_max = self.max_sb.value()
+        self.parent.interpolation = self.interpolation_combobox.currentIndex()
         self.parent.cmap = self.cmap_combobox.currentIndex()
         
         if self.default_cb.isChecked():
             self.parent.parent.plot_settings = {}
-            self.parent.parent.plot_settings['interpolation_enabled'] = self.interpolation_cb.isChecked()
+            self.parent.parent.plot_settings['scale_min'] = self.min_sb.value()
+            self.parent.parent.plot_settings['scale_max'] = self.max_sb.value()            
             self.parent.parent.plot_settings['colorbar_enabled'] = self.colorbar_cb.isChecked()
             self.parent.parent.plot_settings['title_enabled'] = self.title_cb.isChecked()
-            self.parent.parent.plot_settings['scale_min'] = self.min_sb.value()
-            self.parent.parent.plot_settings['scale_max'] = self.max_sb.value()
+            self.parent.parent.plot_settings['interpolation'] = self.interpolation_combobox.currentIndex()            
             self.parent.parent.plot_settings['cmap'] = self.cmap_combobox.currentIndex()
         else:
             self.parent.parent.plot_settings = None

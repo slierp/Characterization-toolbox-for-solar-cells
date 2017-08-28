@@ -51,16 +51,17 @@ class RsheetPlot(QtWidgets.QMainWindow):
 
         self.name = self.data_array.index.name
         self.cmap_options = ['nipy_spectral','Wistia','jet','rainbow','seismic','gray','magma','Reds','Greens','Blues']
+        self.interpolation_options = ['none','hanning','bilinear','bicubic','gaussian']
 
         if not self.parent.plot_settings:
-            self.interpolation_enabled = False
+            self.interpolation = 0
             self.colorbar_enabled = True
             self.title_enabled = True
             self.scale_min = floor(min(self.z))
             self.scale_max = ceil(max(self.z))
             self.cmap = 0
         else:
-            self.interpolation_enabled = self.parent.plot_settings['interpolation_enabled']
+            self.interpolation = self.parent.plot_settings['interpolation']
             self.colorbar_enabled = self.parent.plot_settings['colorbar_enabled']
             self.title_enabled = self.parent.plot_settings['title_enabled']
             self.scale_min = self.parent.plot_settings['scale_min']
@@ -83,14 +84,9 @@ class RsheetPlot(QtWidgets.QMainWindow):
         self.axes.set_xlabel(r'$\mathrm{\mathsf{x}}$', fontsize=24, weight='black')
         self.axes.set_ylabel(r'$\mathrm{\mathsf{y}}$', fontsize=24, weight='black')
 
-        if not self.interpolation_enabled:
-            custom_cmap = matplotlib.cm.get_cmap(self.cmap_options[self.cmap])
-            custom_cmap.set_bad('k',1.0)
-            plot = self.axes.imshow(self.matrix, origin='lower', interpolation='none', cmap=custom_cmap, clim=(self.scale_min, self.scale_max))           
-        else:
-            custom_cmap = matplotlib.cm.get_cmap(self.cmap_options[self.cmap])
-            custom_cmap.set_bad('k',1.0)            
-            plot = self.axes.imshow(self.matrix, origin='lower', interpolation='hanning', cmap=custom_cmap, clim=(self.scale_min, self.scale_max))
+        custom_cmap = matplotlib.cm.get_cmap(self.cmap_options[self.cmap])
+        custom_cmap.set_bad('k',1.0)
+        plot = self.axes.imshow(self.matrix, origin='lower', interpolation=self.interpolation_options[self.interpolation], cmap=custom_cmap, clim=(self.scale_min, self.scale_max))           
 
         if self.colorbar_enabled:
             colorbar = self.fig.colorbar(plot,ax=self.axes)
