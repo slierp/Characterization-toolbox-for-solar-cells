@@ -2,6 +2,8 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PIL import Image
 import os, ntpath
+import pandas as pd
+import numpy as np
 
 class ImageBlendWidget(QtCore.QObject):
     def __init__(self, parent=None):
@@ -154,48 +156,57 @@ class ImageBlendWidget(QtCore.QObject):
         self.statusbar.showMessage(self.tr("Ready"),3000)
 
     def make_report(self):
-        
-        if not len(self.images):
+
+        if len(self.images):
+            self.reportname = QtWidgets.QFileDialog.getSaveFileName(self.parent,self.tr("Save file"), self.prev_dir_path, "Excel Files (*.xlsx)")
+            self.reportname = self.reportname[0]
+            
+            if not self.reportname:
+                return
+
+            if self.reportname:
+                self.statusbar.showMessage(self.tr("Making an Excel report..."),3000)
+            else:
+                return
+        else:
             self.statusbar.showMessage(self.tr("Please load data files"),3000)
             return
 
-        for i in range(len(self.images)):        
-            image = Image.open(self.images[i])
-            image_grey = image.convert('LA') # convert to grayscale
-            width,height = image.size
-    
-            total=0
-            for i in range(0,width):
-                for j in range(0,height):
-                    total += image_grey.getpixel((i,j))[0]
-    
-            mean = total / (width * height)
+        try:
+            self.reportname.encode('ascii')
+        except:
+            msg = self.tr("Filenames with non-ASCII characters were found.\n\nThe application currently only supports ASCII filenames.")
+            QtWidgets.QMessageBox.about(self, self.tr("Warning"), msg) 
+            self.reportname = None
+            return
 
-            total=0
-            pixels = 0
-            for i in range(0,width):
-                for j in range(0,height):
-                    pixel_value = image_grey.getpixel((i,j))[0]
-                    
-                    if pixel_value > 0.5*mean:
-                        total += pixel_value
-                        pixels += 1
+        rp_summ = pd.DataFrame(columns=['Name','Average','Std.dev.'])                                       
+                                                   
+        for i in range(len(self.images)):
+
+            image = Image.open(self.images[i])
+            image_grey = image.convert('LA') # convert to grayscale            
             
-            mean = total / pixels
+            tmp_list = []
+            tmp_list.append(ntpath.splitext(ntpath.basename(self.images[i]))[0])
             
-            total=0
-            pixels = 0
-            for i in range(0,width):
-                for j in range(0,height):
-                    
-                    pixel_value = image_grey.getpixel((i,j))[0]
-                    
-                    if pixel_value:
-                        total += (mean-pixel_value)**2
-                        pixels += 1
+            average_arr = np.array(image_grey)
+            average = np.average(average_arr, axis=(0, 1))[0]            
+            tmp_list.append(average)
+
+            stdev_arr = average_arr - average
+            stdev_arr = stdev_arr ** 2
+            stdev = np.average(stdev_arr, axis=(0, 1))[0] ** 0.5            
+            tmp_list.append(stdev)
             
-            stdev = (total / pixels)**0.5
-            print(100*stdev/mean)
+            rp_summ.loc[i] = tmp_list
+        
+        rp_summ = rp_summ.round(3)
+        writer = pd.ExcelWriter(self.reportname, engine='xlsxwriter')
+        rp_summ.to_excel(writer,self.tr('Summary'))                
+        writer.save()                 
+        
+        self.statusbar.showMessage(self.tr("File saved"),3000)
                                     
     def show_image(self):
         
