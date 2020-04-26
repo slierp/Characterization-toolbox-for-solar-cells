@@ -1,2 +1,2 @@
-"C:\WinPython\python-3.5.4.amd64\python.exe" ctosc\Main.py
+"C:\WinPython\python-3.7.7.amd64\python.exe" ctosc\Main.py
 pause

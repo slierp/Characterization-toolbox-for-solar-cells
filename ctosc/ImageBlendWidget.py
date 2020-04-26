@@ -123,20 +123,27 @@ class ImageBlendWidget(QtCore.QObject):
         read_warning = False
 
         try:
-            self.blend_image=Image.open(self.images[0])
+            self.blend_image = Image.open(self.images[0])
         except:
             warning_string = self.tr("[Error] First file could not be read properly. Operation was stopped.")
             QtWidgets.QMessageBox.about(self.parent, self.tr("Warning"), warning_string) 
             return
 
-        for i in range(1,len(self.images)):
+        w,h=self.blend_image.size
+        N=len(self.images)        
+        arr=np.zeros((h,w,3),np.float)
+
+        for im in self.images:            
             try:
-                image = Image.open(self.images[i])
+                imarr=np.array(Image.open(im),dtype=np.float)            
             except:
                 read_warning = True
                 continue
-            
-            self.blend_image = Image.blend(self.blend_image, image, 1.0/(i+1))
+
+            arr=arr+imarr/N
+
+        arr=np.array(np.round(arr),dtype=np.uint8)
+        self.blend_image=Image.fromarray(arr,mode="RGB")
 
         # Clearing associated data sets
         self.images = [] 

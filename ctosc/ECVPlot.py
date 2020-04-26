@@ -37,9 +37,9 @@ class ECVPlot(QtWidgets.QMainWindow):
         self.y1 = []
         self.name = []
         for i in self.rows:
-            self.x.append(data[i].ix[:,0].tolist())
-            self.y0.append(data[i].ix[:,5].tolist())
-            self.y1.append(data[i].ix[:,7].tolist())
+            self.x.append(data[i].loc[:,3].tolist())
+            self.y0.append(data[i].loc[:,5].tolist())
+            self.y1.append(data[i].loc[:,7].tolist())
             self.name.append(data[i].index.name)
 
         if not self.parent.plot_settings:
