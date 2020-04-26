@@ -41,7 +41,7 @@ class ECVWidget(QtCore.QObject):
             self.prev_dir_path = ntpath.dirname(filename)
             
             try:
-                self.data.append(pd.read_csv(filename, skiprows=29, header=None, error_bad_lines=False, encoding='utf-8',usecols=[0,5,7]))
+                self.data.append(pd.read_csv(filename, skiprows=29, header=None, error_bad_lines=False, encoding='utf-8',usecols=[3,5,7]))
             except:
                 read_warning = True
                 continue                

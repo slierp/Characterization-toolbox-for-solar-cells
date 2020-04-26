@@ -105,10 +105,10 @@ class RsheetWidget(QtCore.QObject):
         for i in range(len(self.data)):
             tmp_list = []
             tmp_list.append(self.data[i].index.name)
-            tmp_list.append(self.data[i].ix[:,2].mean())
-            tmp_list.append(self.data[i].ix[:,2].std())
-            tmp_list.append(self.data[i].ix[:,2].min())
-            tmp_list.append(self.data[i].ix[:,2].max())
+            tmp_list.append(self.data[i].iloc[:,2].mean())
+            tmp_list.append(self.data[i].iloc[:,2].std())
+            tmp_list.append(self.data[i].iloc[:,2].min())
+            tmp_list.append(self.data[i].iloc[:,2].max())
             rp_summ.loc[i] = tmp_list
         
         rp_summ = rp_summ.round(3)

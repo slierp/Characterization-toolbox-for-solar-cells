@@ -30,9 +30,9 @@ class RsheetPlot(QtWidgets.QMainWindow):
         data = self.parent.data
         row = self.parent.view.selectedIndexes()[0].row()
         self.data_array = data[row]
-        self.x = self.data_array.ix[:,0].tolist()     
-        self.y = self.data_array.ix[:,1].tolist()       
-        self.z  = self.data_array.ix[:,2].tolist()                        
+        self.x = self.data_array.iloc[:,0].tolist()
+        self.y = self.data_array.iloc[:,1].tolist()       
+        self.z  = self.data_array.iloc[:,2].tolist()                        
         
         self.x_points = len(set(self.x)) # no of unique points
         self.y_points = len(set(self.y))
