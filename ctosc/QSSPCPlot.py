@@ -4,7 +4,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from matplotlib import rcParams
-from ECVPlotSettingsDialog import ECVPlotSettingsDialog
+from QSSPCPlotSettingsDialog import QSSPCPlotSettingsDialog
 rcParams.update({'figure.autolayout': True})
 
 font = {'family' : 'sans-serif',
@@ -14,11 +14,11 @@ matplotlib.rc('font', **font)
 
 cl = ['#4F81BD', '#C0504D', '#9BBB59','#F79646','#8064A2','#4BACC6','0','0.5']
 
-class ECVPlot(QtWidgets.QMainWindow):  
+class QSSPCPlot(QtWidgets.QMainWindow):  
     
     def __init__(self, parent):
         QtWidgets.QMainWindow.__init__(self)
-        self.setWindowTitle(self.tr("ECV data"))
+        self.setWindowTitle(self.tr("QSSPC data"))
         self.resize(1020, 752)
         self.setStyleSheet('font-size: 12pt;')        
         frameGm = self.frameGeometry()
@@ -33,13 +33,13 @@ class ECVPlot(QtWidgets.QMainWindow):
             self.rows.append(self.parent.view.selectedIndexes()[i].row())
         
         self.x = []
-        self.y0 = []
-        self.y1 = []
+        self.y = []
         self.name = []
         for i in self.rows:
-            self.x.append(data[i].loc[:,3].tolist())
-            self.y0.append(data[i].loc[:,5].tolist())
-            self.y1.append(data[i].loc[:,7].tolist())
+            self.x.append(data[i].loc[:,6].tolist())
+            y = data[i].loc[:,4].tolist()
+            y = [j * 1000 for j in y] # convert to milliseconds
+            self.y.append(y)
             self.name.append(data[i].index.name)
 
         if not self.parent.plot_settings:
@@ -47,10 +47,8 @@ class ECVPlot(QtWidgets.QMainWindow):
             self.legend_enabled = True
             self.dots_enabled = True
             self.dotsize = 4
-            self.lines_enabled = True
+            self.lines_enabled = False
             self.linewidth = 2
-            self.show_only_ndoping = False
-            self.show_only_pdoping = False
         else:
             self.grid_enabled = self.parent.plot_settings['grid_enabled']
             self.legend_enabled = self.parent.plot_settings['legend_enabled']
@@ -58,8 +56,6 @@ class ECVPlot(QtWidgets.QMainWindow):
             self.dotsize = self.parent.plot_settings['dotsize']
             self.lines_enabled = self.parent.plot_settings['lines_enabled']
             self.linewidth = self.parent.plot_settings['linewidth'] 
-            self.show_only_ndoping = self.parent.plot_settings['show_only_ndoping']
-            self.show_only_pdoping = self.parent.plot_settings['show_only_pdoping']
         
         self.create_menu()
         self.create_main_frame()          
@@ -71,8 +67,8 @@ class ECVPlot(QtWidgets.QMainWindow):
         
         self.axes.grid(self.grid_enabled)
 
-        self.axes.set_xlabel(r'$\mathrm{\mathsf{Depth\ [\mu m]}}$', fontsize=24, weight='black')
-        self.axes.set_ylabel(r'$\mathrm{\mathsf{N\ [cm^{-3}]}}$', fontsize=24, weight='black')
+        self.axes.set_ylabel(r'$\mathrm{\mathsf{Lifetime\ [ms]}}$', fontsize=24, weight='black')
+        self.axes.set_xlabel(r'$\mathrm{\mathsf{Minority\ carrier\ density\ [cm^{-3}]}}$', fontsize=24, weight='black')
 
         self.axes.tick_params(pad=8) 
 
@@ -87,17 +83,12 @@ class ECVPlot(QtWidgets.QMainWindow):
             else:
                 style = '-'
             
-            if not self.show_only_pdoping:
-                count = sum(j > 0 for j in self.y0[i]) # do not plot dataset with zero or one data points
-                if count > 1:
-                    self.axes.plot(self.x[i],self.y0[i],style,c=color,markersize=self.dotsize,markeredgecolor=edge_color,linewidth=self.linewidth,label=self.name[i])
-            
-            if not self.show_only_ndoping:
-                count = sum(j > 0 for j in self.y1[i])
-                if count > 1:
-                    self.axes.plot(self.x[i],self.y1[i],style,c=color,markersize=self.dotsize,markeredgecolor=edge_color,linewidth=self.linewidth,label=self.name[i])
-            
-        self.axes.set_yscale('log')
+            count = sum(j > 0 for j in self.y[i]) # do not plot dataset with zero or one data points
+            if count > 1:
+                self.axes.plot(self.x[i],self.y[i],style,c=color,markersize=self.dotsize,markeredgecolor=edge_color,linewidth=self.linewidth,label=self.name[i])
+
+                     
+        self.axes.set_xscale('log')
     
         if self.legend_enabled:
             self.axes.legend(loc='lower left',scatterpoints=1,markerscale=3,frameon=True)
@@ -154,6 +145,6 @@ class ECVPlot(QtWidgets.QMainWindow):
         self.file_menu.addAction(quit_action)
         
     def plot_settings_view(self):
-        settings_dialog = ECVPlotSettingsDialog(self)
+        settings_dialog = QSSPCPlotSettingsDialog(self)
         settings_dialog.setModal(True)
         settings_dialog.show()         

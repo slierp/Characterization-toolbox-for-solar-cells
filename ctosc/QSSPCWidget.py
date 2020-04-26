@@ -1,0 +1,95 @@
+# -*- coding: utf-8 -*-
+from PyQt5 import QtCore, QtWidgets, QtGui
+import ntpath
+import pandas as pd
+from QSSPCPlot import QSSPCPlot
+
+class QSSPCWidget(QtCore.QObject):
+    def __init__(self, parent=None):
+        super(QSSPCWidget, self).__init__(parent)
+        
+        self.parent = parent
+        self.view = self.parent.qsspc_view        
+        self.model = self.parent.qsspc_model
+        self.statusbar = self.parent.statusBar()
+        self.data = []
+        self.wid = None
+        self.prev_dir_path = ""
+        self.plot_settings = None
+        
+    def open_files(self):   
+
+        fileNames = QtWidgets.QFileDialog.getOpenFileNames(self.parent,self.tr("Load files"), self.prev_dir_path, "TXT Files (*.txt)")
+        fileNames = fileNames[0]
+        
+        if (not fileNames):
+            return          
+        
+        non_ascii_warning = False
+        read_warning = False        
+
+        for filename in fileNames:
+
+            # Check for non-ASCII filenames, give warning and skip loading such files
+            try:
+                filename.encode('ascii')
+            except:
+                non_ascii_warning = True
+                continue
+        
+            # Set working directory so that user can remain where they are
+            self.prev_dir_path = ntpath.dirname(filename)
+            
+            try:
+                self.data.append(pd.read_csv(filename, skiprows=15, sep='\t', header=None, error_bad_lines=False, encoding='utf-8',usecols=[4,6]))
+            except:
+                read_warning = True
+                continue                
+
+            ### add list view item ###
+            str_a = ntpath.splitext(ntpath.basename(filename))[0]
+            str_a = str_a[0:100] # set name limited to 99 characters
+            self.data[-1].index.name = str_a
+            item = QtGui.QStandardItem(str_a)
+            self.model.appendRow(item)
+                              
+        warning_string = ""
+
+        if read_warning:
+            warning_string += self.tr("[Error] Some files could not be read properly. ") 
+            
+        if non_ascii_warning:
+            warning_string += self.tr("[Error] Filenames with non-ASCII characters were found. The application currently only supports ASCII filenames.")
+        
+        if read_warning or non_ascii_warning:
+            QtWidgets.QMessageBox.about(self.parent, self.tr("Warning"), warning_string)              
+            
+        if len(self.data):
+            self.statusbar.showMessage(self.tr("Ready"),3000)
+        else:
+            self.statusbar.showMessage(self.tr("No files loaded"),3000)
+                                    
+    def show(self):
+        
+        if (not len(self.data)):
+            self.statusbar.showMessage(self.tr("Please load data files"),3000)
+            return      
+
+        self.statusbar.showMessage(self.tr("Creating plot window..."),3000)
+
+        if (self.wid):
+            if (self.wid.isWindow()):
+                # close previous instances of child windows to save system memory                
+                self.wid.close()                
+
+        self.wid = QSSPCPlot(self)
+
+        self.wid.show()
+
+        self.statusbar.showMessage(self.tr("Ready"),3000)           
+        
+    def clear_data(self):
+        self.data = []         
+        self.model.clear()
+        self.model.setHorizontalHeaderLabels(['Files'])
+        self.statusbar.showMessage(self.tr("All data has been cleared"),3000)        

@@ -4,6 +4,7 @@ from PyQt5 import QtGui, QtWidgets
 from ImageBlendWidget import ImageBlendWidget
 from RsheetWidget import RsheetWidget
 from ECVWidget import ECVWidget
+from QSSPCWidget import QSSPCWidget
 
 class MainGui(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
@@ -34,6 +35,11 @@ class MainGui(QtWidgets.QMainWindow):
         self.imageblend_view = QtWidgets.QTreeView()
         self.imageblend_model = QtGui.QStandardItemModel()
         self.image_blend_widget = ImageBlendWidget(self)
+
+        self.qsspc_view = QtWidgets.QTreeView()
+        self.qsspc_model = QtGui.QStandardItemModel()
+        self.qsspc_widget = QSSPCWidget(self)
+        self.qsspc_view.doubleClicked.connect(self.qsspc_widget.show)
 
         self.status_text = QtWidgets.QLabel("")
         
@@ -196,13 +202,53 @@ class MainGui(QtWidgets.QMainWindow):
         tab2 = QtWidgets.QWidget()
         tab2_layout = QtWidgets.QVBoxLayout(tab2)
         tab2_layout.addLayout(vbox)
+
+        ##### QSSPC #####     
+        self.qsspc_view.setModel(self.qsspc_model)
+        self.qsspc_model.setHorizontalHeaderLabels([self.tr('Files')])
+        self.qsspc_view.setRootIsDecorated(False)
+        self.qsspc_view.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)
+        self.qsspc_view.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self.qsspc_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)        
+
+        qsspc_open_files_button = QtWidgets.QPushButton()
+        qsspc_open_files_button.clicked.connect(self.qsspc_widget.open_files) 
+        qsspc_open_files_button.setIcon(QtGui.QIcon(":open.png"))
+        qsspc_open_files_button.setToolTip(self.tr("Open files"))
+        qsspc_open_files_button.setStatusTip(self.tr("Open files"))
+
+        qsspc_show_button = QtWidgets.QPushButton()
+        qsspc_show_button.clicked.connect(self.qsspc_widget.show)
+        qsspc_show_button.setIcon(QtGui.QIcon(":chart.png"))
+        qsspc_show_button.setToolTip(self.tr("Show measurement"))
+        qsspc_show_button.setStatusTip(self.tr("Show measurement"))
+
+        qsspc_clear_data_button = QtWidgets.QPushButton()
+        qsspc_clear_data_button.clicked.connect(self.qsspc_widget.clear_data)
+        qsspc_clear_data_button.setIcon(QtGui.QIcon(":erase.png"))
+        qsspc_clear_data_button.setToolTip(self.tr("Remove all"))
+        qsspc_clear_data_button.setStatusTip(self.tr("Remove all"))
+
+        buttonbox3 = QtWidgets.QDialogButtonBox()
+        buttonbox3.addButton(qsspc_open_files_button, QtWidgets.QDialogButtonBox.ActionRole)
+        buttonbox3.addButton(qsspc_show_button, QtWidgets.QDialogButtonBox.ActionRole)
+        buttonbox3.addButton(qsspc_clear_data_button, QtWidgets.QDialogButtonBox.ActionRole)
+
+        vbox = QtWidgets.QVBoxLayout()
+        vbox.addWidget(self.qsspc_view)
+        vbox.addWidget(buttonbox3)
+
+        tab3 = QtWidgets.QWidget()
+        tab3_layout = QtWidgets.QVBoxLayout(tab3)
+        tab3_layout.addLayout(vbox)
         
         ##### main layout settings #####
         tabwidget = QtWidgets.QTabWidget()
         tabwidget.addTab(tab0, "Rsheet")
         tabwidget.addTab(tab1, "ECV")
         tabwidget.addTab(tab2, "PL/EL")
-  
+        tabwidget.addTab(tab3, "QSSPC")
+        
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(tabwidget)           
                                        
